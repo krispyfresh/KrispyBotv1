@@ -1,37 +1,51 @@
 import json
 import requests
+import sys
 
-# set global variables
-last_update_id_handle = open("last.update","r+")
+# open files
+try:
+	last_update_id_handle = open("last.update","r+")
+except:
+	sys.exit("Could not open last.update.  Stopping KrispyBot...")
+try:
+	bot_token_handle = open("bot.token","r")
+except:
+	sys.exit("Cloud not open bot.token.  Please paste your bot token into the bot.token file.")
+
+# set global variables	
 last_update_id = last_update_id_handle.read().strip() # use strip to remove endline from number
-last_update_id = int(last_update_id.split('\x00')[0])
-#last_update_id = float(last_update_id)
-print last_update_id
-bot_token_handle = open("bot.token","r")
 bot_token = bot_token_handle.read().strip() # use strip to remove endline from bot token 
+last_update_id = int(last_update_id.split('\x00')[0]) # remove null characters that are cropping up in the file
 telegram_api_url = "https://api.telegram.org/{}/".format(bot_token)
 
-
+#  main loop:  keep looping and getting messages as they come in
 while (True):
 	response = requests.get(telegram_api_url + "getUpdates?offset=" + str(last_update_id) + "&timeout=60")
 	response = response.content.decode("utf8")
 	response = json.loads(response)
-	last_update_id = response["result"][0]["update_id"]
+	#last_update_id = response["result"][0]["update_id"]
 	print response["result"][0]
 	
-	if "message" not in response["result"][0]:
-		last_update_id = last_update_id + 1
+	for i in range(0,len(response["result"])):
+		last_update_id = response["result"][i]["update_id"] + 1
 		last_update_id_handle.seek(0)
 		last_update_id_handle.truncate()
 		last_update_id_handle.write(str(last_update_id))
-	else:
-		last_update_id = last_update_id + 1
-		last_update_id_handle.seek(0)
-		last_update_id_handle.truncate()
-		last_update_id_handle.write(str(last_update_id))
+
+		if response["result"][i]["message"] != None:
+			print "received a message!"
+		else:
+			print "received something other than a message"
+#	if "message" not in response["result"][0]:
+#		last_update_id = last_update_id + 1
+#		last_update_id_handle.seek(0)
+#		last_update_id_handle.truncate()
+#		last_update_id_handle.write(str(last_update_id))
+#	else:
+#		last_update_id = last_update_id + 1
+#		last_update_id_handle.seek(0)
+#		last_update_id_handle.truncate()
+#		last_update_id_handle.write(str(last_update_id))
 		
-#print last_update_id 	
+	
 
-
-
-#piecemeal this code.  i want to see what the updates look like first and then parse through them so i can write my own function!  wish i had the cloud srver though =(
