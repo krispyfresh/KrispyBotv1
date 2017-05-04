@@ -10,12 +10,12 @@ except:
 try:
 	bot_token_handle = open("bot.token","r")
 except:
-	sys.exit("Cloud not open bot.token.  Please paste your bot token into the bot.token file.")
+	sys.exit("Could not open bot.token.  Please paste your bot token into the bot.token file.  Stopping KrispyBot...")
 
 # set global variables	
 last_update_id = last_update_id_handle.read().strip() # use strip to remove endline from number
 bot_token = bot_token_handle.read().strip() # use strip to remove endline from bot token 
-last_update_id = int(last_update_id.split('\x00')[0]) # remove null characters that are cropping up in the file
+last_update_id = int(last_update_id.split('\x00')[0]) # remove null characters that are showing up in the file
 telegram_api_url = "https://api.telegram.org/{}/".format(bot_token)
 
 #  main loop:  keep looping and getting messages as they come in
