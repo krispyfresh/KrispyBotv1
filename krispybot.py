@@ -23,7 +23,6 @@ while (True):
 	response = requests.get(telegram_api_url + "getUpdates?offset=" + str(last_update_id) + "&timeout=60")
 	response = response.content.decode("utf8")
 	response = json.loads(response)
-	#last_update_id = response["result"][0]["update_id"]
 	print response["result"][0]
 	
 	for i in range(0,len(response["result"])):
@@ -36,16 +35,6 @@ while (True):
 			print "received a message!"
 		else:
 			print "received something other than a message"
-#	if "message" not in response["result"][0]:
-#		last_update_id = last_update_id + 1
-#		last_update_id_handle.seek(0)
-#		last_update_id_handle.truncate()
-#		last_update_id_handle.write(str(last_update_id))
-#	else:
-#		last_update_id = last_update_id + 1
-#		last_update_id_handle.seek(0)
-#		last_update_id_handle.truncate()
-#		last_update_id_handle.write(str(last_update_id))
-		
+
 	
 
