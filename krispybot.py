@@ -1,6 +1,7 @@
 import json
 import requests
 import sys
+import random
 
 # open files
 try:
@@ -23,7 +24,7 @@ imgur_api_key = imgur_api_key_handle.read().strip()
 last_update_id = int(last_update_id.split('\x00')[0])								# remove null characters that are showing up in the file
 telegram_api_url = "https://api.telegram.org/{}/".format(bot_token)
 imgur_api_url = "https://api.imgur.com/3/"
-
+last_update_id = 0
 
 #  main loop:  keep looping and getting messages as they come in
 while (True):
@@ -34,9 +35,9 @@ while (True):
 	
 	for i in range(0,len(response["result"])):
 		last_update_id = response["result"][i]["update_id"] + 1
-		last_update_id_handle.seek(0)
-		last_update_id_handle.truncate()
-		last_update_id_handle.write(str(last_update_id))
+		#last_update_id_handle.seek(0)
+		#last_update_id_handle.truncate()
+		#last_update_id_handle.write(str(last_update_id))
 
 		if "message" in response["result"][i]:  									# is there a message?
 			message = response["result"][i]["message"]
@@ -51,17 +52,36 @@ while (True):
 						imgur_header = {"Authorization": "Client-ID " + imgur_api_key}
 						imgur_response = requests.get(imgur_api_url + "gallery/r/" + query,headers=imgur_header )
 						
-						if 200 in imgur_response:
-							imgur_response = imgur_response.content.decode("utf8")
-						
+						if(imgur_response.status_code == 200):
+							response_content = imgur_response.json()
+							num_of_responses = len(response_content["data"])
+							chat_id = str(message["chat"]["id"])
+							if(num_of_responses == 0):
+								post_response = requests.post(telegram_api_url + "sendMessage?chat_id=" + chat_id + "&text=We ain't found shit")
+							else:
+								random_number = random.randint(0,num_of_responses - 1)
+								post_response = requests.post(telegram_api_url + "sendMessage?chat_id=" + chat_id + "&text=" + response_content["data"][random_number]["link"])
 
-							print imgur_response
-					
-					
+					if bot_command_raw.startswith("/search"):
+						query = bot_command_raw[bot_command_length:].strip()
+						imgur_header = {"Authorization": "Client-ID " + imgur_api_key}
+						imgur_response = requests.get(imgur_api_url + "gallery/search/?q=" + query,headers=imgur_header )
+						
+						if(imgur_response.status_code == 200):
+							response_content = imgur_response.json()
+							num_of_responses = len(response_content["data"])
+							chat_id = str(message["chat"]["id"])
+							if(num_of_responses == 0):
+								post_response = requests.post(telegram_api_url + "sendMessage?chat_id=" + chat_id + "&text=We ain't found shit")
+							else:
+								random_number = random.randint(0,num_of_responses - 1)
+								post_response = requests.post(telegram_api_url + "sendMessage?chat_id=" + chat_id + "&text=" + response_content["data"][random_number]["link"])
+
 					
 					
 			#print message
 		else:
 			print "received something other than a message"
+			print response["result"][i]
 
 
